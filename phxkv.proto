@@ -13,16 +13,14 @@ message KVOperator
 {
 	string key = 1;
 	bytes value = 2;
-	uint64 version = 3;
-	uint32 operator = 4;
-	uint32 sid = 5;
+	uint32 operator = 3;
+	uint32 sid = 4;
 };
 
 message KVData
 {
 	bytes value = 1;
-	uint64 version = 2;
-	bool isdeleted = 3;
+	bool isdeleted = 2;
 };
 
 message KVResponse

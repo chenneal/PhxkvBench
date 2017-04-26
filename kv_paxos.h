@@ -37,7 +37,7 @@ class PhxKV
 {
 public:
     PhxKV(const phxpaxos::NodeInfo & oMyNode, const phxpaxos::NodeInfoList & vecNodeList,
-            const std::string & sKVDBPath, const std::string & sPaxosLogPath);
+            const std::string & sKVDBPath, const std::string & sPaxosLogPath, const int & iGroupCount);
     ~PhxKV();
 
     int RunPaxos();
@@ -48,17 +48,14 @@ public:
 
     PhxKVStatus Put(
             const std::string & sKey, 
-            const std::string & sValue, 
-            const uint64_t llVersion = NullVersion);
+            const std::string & sValue);
 
     PhxKVStatus GetLocal(
             const std::string & sKey, 
-            std::string & sValue, 
-            uint64_t & llVersion);
+            std::string & sValue);
 
     PhxKVStatus Delete( 
-            const std::string & sKey, 
-            const uint64_t llVersion = NullVersion);
+            const std::string & sKey);
 
 private:
     int GetGroupIdx(const std::string & sKey);

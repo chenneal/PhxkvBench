@@ -34,12 +34,10 @@ class PhxKVSMCtx
 public:
     int iExecuteRet;
     std::string sReadValue;
-    uint64_t llReadVersion;
 
     PhxKVSMCtx()
     {
         iExecuteRet = -1;
-        llReadVersion = 0;
     }
 };
 
@@ -82,7 +80,6 @@ public:
     static bool MakeOpValue(
             const std::string & sKey, 
             const std::string & sValue, 
-            const uint64_t llVersion, 
             const KVOperatorType iOp,
             std::string & sPaxosValue);
 
@@ -93,12 +90,10 @@ public:
     static bool MakeSetOpValue(
             const std::string & sKey, 
             const std::string & sValue, 
-            const uint64_t llVersion, 
             std::string & sPaxosValue);
 
     static bool MakeDelOpValue(
             const std::string & sKey, 
-            const uint64_t llVersion, 
             std::string & sPaxosValue);
 
     KVClient * GetKVClient();

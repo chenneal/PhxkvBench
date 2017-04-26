@@ -69,7 +69,7 @@ KVClient * KVClient :: Instance()
     return &oKVClient;
 }
 
-KVClientRet KVClient :: Get(const std::string & sKey, std::string & sValue, uint64_t & llVersion)
+KVClientRet KVClient :: Get(const std::string & sKey, std::string & sValue)
 {
     if (!m_bHasInit)
     {
@@ -84,7 +84,6 @@ KVClientRet KVClient :: Get(const std::string & sKey, std::string & sValue, uint
         if (oStatus.IsNotFound())
         {
             PLErr("LevelDB.Get not found, key %s", sKey.c_str());
-            llVersion = 0;
             return KVCLIENT_KEY_NOTEXIST;
         }
         
@@ -100,8 +99,6 @@ KVClientRet KVClient :: Get(const std::string & sKey, std::string & sValue, uint
         return KVCLIENT_SYS_FAIL;
     }
 
-    llVersion = oData.version();
-
     if (oData.isdeleted())
     {
         PLErr("LevelDB.Get key already deleted, key %s", sKey.c_str());
@@ -110,12 +107,12 @@ KVClientRet KVClient :: Get(const std::string & sKey, std::string & sValue, uint
 
     sValue = oData.value();
 
-    PLImp("OK, key %s value %s version %lu", sKey.c_str(), sValue.c_str(), llVersion);
+    PLImp("OK, key %s value %s", sKey.c_str(), sValue.c_str());
 
     return KVCLIENT_OK;
 }
 
-KVClientRet KVClient :: Set(const std::string & sKey, const std::string & sValue, const uint64_t llVersion)
+KVClientRet KVClient :: Set(const std::string & sKey, const std::string & sValue)
 {
     if (!m_bHasInit)
     {
@@ -125,23 +122,15 @@ KVClientRet KVClient :: Set(const std::string & sKey, const std::string & sValue
 
     std::lock_guard<std::mutex> oLockGuard(m_oMutex);
     
-    uint64_t llServerVersion = 0;
     std::string sServerValue;
-    KVClientRet ret = Get(sKey, sServerValue, llServerVersion);
+    KVClientRet ret = Get(sKey, sServerValue);
     if (ret != KVCLIENT_OK && ret != KVCLIENT_KEY_NOTEXIST)
     {
         return KVCLIENT_SYS_FAIL;
     }
 
-    if (llServerVersion != llVersion)
-    {
-        return KVCLIENT_KEY_VERSION_CONFLICT;
-    }
-
-    llServerVersion++;
     KVData oData;
     oData.set_value(sValue);
-    oData.set_version(llServerVersion);
     oData.set_isdeleted(false);
 
     std::string sBuffer;
@@ -159,12 +148,12 @@ KVClientRet KVClient :: Set(const std::string & sKey, const std::string & sValue
         return KVCLIENT_SYS_FAIL;
     }
 
-    PLImp("OK, key %s value %s version %lu", sKey.c_str(), sValue.c_str(), llVersion);
+    PLImp("OK, key %s value %s", sKey.c_str(), sValue.c_str());
 
     return KVCLIENT_OK;
 }
 
-KVClientRet KVClient :: Del(const std::string & sKey, const uint64_t llVersion)
+KVClientRet KVClient :: Del(const std::string & sKey)
 {
     if (!m_bHasInit)
     {
@@ -174,23 +163,15 @@ KVClientRet KVClient :: Del(const std::string & sKey, const uint64_t llVersion)
 
     std::lock_guard<std::mutex> oLockGuard(m_oMutex);
     
-    uint64_t llServerVersion = 0;
     std::string sServerValue;
-    KVClientRet ret = Get(sKey, sServerValue, llServerVersion);
+    KVClientRet ret = Get(sKey, sServerValue);
     if (ret != KVCLIENT_OK && ret != KVCLIENT_KEY_NOTEXIST)
     {
         return KVCLIENT_SYS_FAIL;
     }
 
-    if (llServerVersion != llVersion)
-    {
-        return KVCLIENT_KEY_VERSION_CONFLICT;
-    }
-    
-    llServerVersion++;
     KVData oData;
     oData.set_value(sServerValue);
-    oData.set_version(llServerVersion);
     oData.set_isdeleted(true);
 
     std::string sBuffer;
@@ -208,7 +189,7 @@ KVClientRet KVClient :: Del(const std::string & sKey, const uint64_t llVersion)
         return KVCLIENT_SYS_FAIL;
     }
 
-    PLImp("OK, key %s version %lu", sKey.c_str(), llVersion);
+    PLImp("OK, key %s", sKey.c_str());
 
     return KVCLIENT_OK;
 }

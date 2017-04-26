@@ -60,8 +60,7 @@ void PhxKVClient :: NewChannel(const uint64_t llNodeID)
 
 int PhxKVClient :: Put(
         const std::string & sKey, 
-        const std::string & sValue, 
-        const uint64_t llVersion,
+        const std::string & sValue,
         const int iDeep)
 {
     if (iDeep > 3)
@@ -72,7 +71,6 @@ int PhxKVClient :: Put(
     KVOperator oRequest;
     oRequest.set_key(sKey);
     oRequest.set_value(sValue);
-    oRequest.set_version(llVersion);
     oRequest.set_operator_(KVOperatorType_WRITE);
 
     KVResponse oResponse;
@@ -86,7 +84,7 @@ int PhxKVClient :: Put(
             if (oResponse.master_nodeid() != phxpaxos::nullnode)
             {
                 NewChannel(oResponse.master_nodeid());
-                return Put(sKey, sValue, llVersion, iDeep + 1);
+                return Put(sKey, sValue, iDeep + 1);
             }
             else
             {
@@ -104,8 +102,7 @@ int PhxKVClient :: Put(
 
 int PhxKVClient :: GetLocal(
         const std::string & sKey, 
-        std::string & sValue, 
-        uint64_t & llVersion)
+        std::string & sValue)
 {
     KVOperator oRequest;
     oRequest.set_key(sKey);
@@ -118,7 +115,6 @@ int PhxKVClient :: GetLocal(
     if (status.ok())
     {
         sValue = oResponse.data().value();
-        llVersion = oResponse.data().version();
         return oResponse.ret();
     }
     else
@@ -127,32 +123,12 @@ int PhxKVClient :: GetLocal(
     }
 }
 
-int PhxKVClient :: GetLocal(
-        const std::string & sKey, 
-        const uint64_t minVersion, 
-        std::string & sValue, 
-        uint64_t & llVersion)
-{
-    int ret = GetLocal(sKey, sValue, llVersion);
-    if (ret == 0)
-    {
-        if (llVersion < minVersion)
-        {
-            return static_cast<int>(PhxKVStatus::VERSION_NOTEXIST);
-        }
-    }
-
-    return ret;
-}
-
 int PhxKVClient :: Delete( 
         const std::string & sKey, 
-        const uint64_t llVersion,
         const int iDeep)
 {
     KVOperator oRequest;
     oRequest.set_key(sKey);
-    oRequest.set_version(llVersion);
     oRequest.set_operator_(KVOperatorType_DELETE);
 
     KVResponse oResponse;
@@ -166,7 +142,7 @@ int PhxKVClient :: Delete(
             if (oResponse.master_nodeid() != phxpaxos::nullnode)
             {
                 NewChannel(oResponse.master_nodeid());
-                return Delete(sKey, llVersion, iDeep + 1);
+                return Delete(sKey, iDeep + 1);
             }
             else
             {
@@ -185,7 +161,6 @@ int PhxKVClient :: Delete(
 int PhxKVClient :: GetGlobal(
         const std::string & sKey, 
         std::string & sValue, 
-        uint64_t & llVersion,
         const int iDeep)
 {
     if (iDeep > 3)
@@ -208,7 +183,7 @@ int PhxKVClient :: GetGlobal(
             if (oResponse.master_nodeid() != phxpaxos::nullnode)
             {
                 NewChannel(oResponse.master_nodeid());
-                return GetGlobal(sKey, sValue, llVersion, iDeep + 1);
+                return GetGlobal(sKey, sValue, iDeep + 1);
             }
             else
             {
@@ -217,7 +192,6 @@ int PhxKVClient :: GetGlobal(
         }
 
         sValue = oResponse.data().value();
-        llVersion = oResponse.data().version();
 
         return oResponse.ret();
     }

@@ -34,14 +34,15 @@ namespace phxkv
 {
 
 PhxKV :: PhxKV(const phxpaxos::NodeInfo & oMyNode, const phxpaxos::NodeInfoList & vecNodeList,
-        const std::string & sKVDBPath, const std::string & sPaxosLogPath)
+        const std::string & sKVDBPath, const std::string & sPaxosLogPath, const int & iGroupCount)
     : m_oMyNode(oMyNode), m_vecNodeList(vecNodeList), 
     m_sKVDBPath(sKVDBPath), m_sPaxosLogPath(sPaxosLogPath), 
-    m_poPaxosNode(nullptr), m_oPhxKVSM(sKVDBPath)
+    m_poPaxosNode(nullptr), m_oPhxKVSM(sKVDBPath),
+    m_iGroupCount(iGroupCount)
 {
     //only show you how to use multi paxos group, you can set as 1, 2, or any other number.
     //not too large.
-    m_iGroupCount = 3;
+    //m_iGroupCount = 3;
 }
 
 PhxKV :: ~PhxKV()
@@ -139,11 +140,10 @@ int PhxKV :: KVPropose(const std::string & sKey, const std::string & sPaxosValue
 
 PhxKVStatus PhxKV :: Put(
         const std::string & sKey, 
-        const std::string & sValue, 
-        const uint64_t llVersion)
+        const std::string & sValue)
 {
     string sPaxosValue;
-    bool bSucc = PhxKVSM::MakeSetOpValue(sKey, sValue, llVersion, sPaxosValue);
+    bool bSucc = PhxKVSM::MakeSetOpValue(sKey, sValue, sPaxosValue);
     if (!bSucc)
     {
         return PhxKVStatus::FAIL;
@@ -160,10 +160,6 @@ PhxKVStatus PhxKV :: Put(
     {
         return PhxKVStatus::SUCC;
     }
-    else if (oPhxKVSMCtx.iExecuteRet == KVCLIENT_KEY_VERSION_CONFLICT)
-    {
-        return PhxKVStatus::VERSION_CONFLICT; 
-    }
     else
     {
         return PhxKVStatus::FAIL;
@@ -172,10 +168,9 @@ PhxKVStatus PhxKV :: Put(
 
 PhxKVStatus PhxKV :: GetLocal(
         const std::string & sKey, 
-        std::string & sValue, 
-        uint64_t & llVersion)
+        std::string & sValue)
 {
-    int ret = m_oPhxKVSM.GetKVClient()->Get(sKey, sValue, llVersion);
+    int ret = m_oPhxKVSM.GetKVClient()->Get(sKey, sValue);
     if (ret == KVCLIENT_OK)
     {
         return PhxKVStatus::SUCC;
@@ -191,11 +186,10 @@ PhxKVStatus PhxKV :: GetLocal(
 }
 
 PhxKVStatus PhxKV :: Delete( 
-        const std::string & sKey, 
-        const uint64_t llVersion)
+        const std::string & sKey)
 {
     string sPaxosValue;
-    bool bSucc = PhxKVSM::MakeDelOpValue(sKey, llVersion, sPaxosValue);
+    bool bSucc = PhxKVSM::MakeDelOpValue(sKey, sPaxosValue);
     if (!bSucc)
     {
         return PhxKVStatus::FAIL;
@@ -211,10 +205,6 @@ PhxKVStatus PhxKV :: Delete(
     if (oPhxKVSMCtx.iExecuteRet == KVCLIENT_OK)
     {
         return PhxKVStatus::SUCC;
-    }
-    else if (oPhxKVSMCtx.iExecuteRet == KVCLIENT_KEY_VERSION_CONFLICT)
-    {
-        return PhxKVStatus::VERSION_CONFLICT; 
     }
     else
     {

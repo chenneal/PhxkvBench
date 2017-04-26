@@ -32,7 +32,7 @@ class PhxKVServiceImpl final : public PhxKVServer::Service
 {
 public:
     PhxKVServiceImpl(const phxpaxos::NodeInfo & oMyNode, const phxpaxos::NodeInfoList & vecNodeList,
-            const std::string & sKVDBPath, const std::string & sPaxosLogPath);
+            const std::string & sKVDBPath, const std::string & sPaxosLogPath, const int & iGroupCount);
 
     int Init();
     

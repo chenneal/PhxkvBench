@@ -33,7 +33,6 @@ enum KVClientRet
     KVCLIENT_OK = 0,
     KVCLIENT_SYS_FAIL = -1,
     KVCLIENT_KEY_NOTEXIST = 1,
-    KVCLIENT_KEY_VERSION_CONFLICT = -11,
 };
 
 #define KV_CHECKPOINT_KEY ((uint64_t)-1)
@@ -48,11 +47,11 @@ public:
 
     static KVClient * Instance();
 
-    KVClientRet Get(const std::string & sKey, std::string & sValue, uint64_t & llVersion);
+    KVClientRet Get(const std::string & sKey, std::string & sValue);
 
-    KVClientRet Set(const std::string & sKey, const std::string & sValue, const uint64_t llVersion);
+    KVClientRet Set(const std::string & sKey, const std::string & sValue);
 
-    KVClientRet Del(const std::string & sKey, const uint64_t llVersion);
+    KVClientRet Del(const std::string & sKey);
 
     KVClientRet GetCheckpointInstanceID(uint64_t & llCheckpointInstanceID);
 

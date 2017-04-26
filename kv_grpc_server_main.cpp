@@ -87,9 +87,9 @@ int parse_ipport_list(const char * pcStr, NodeInfoList & vecNodeInfoList)
 
 int main(int argc, char ** argv)
 {
-    if (argc < 6)
+    if (argc < 7)
     {
-        printf("%s <grpc myip:myport> <paxos myip:myport> <node0_ip:node_0port,node1_ip:node_1_port,node2_ip:node2_port,...> <kvdb storagepath> <paxoslog storagepath>\n", argv[0]);
+        printf("%s <grpc myip:myport> <paxos myip:myport> <node0_ip:node_0port,node1_ip:node_1_port,node2_ip:node2_port,...> <kvdb storagepath> <paxoslog storagepath> <group count>\n", argv[0]);
         return -1;
     }
 
@@ -121,7 +121,9 @@ int main(int argc, char ** argv)
 
     NLDebug("server init start.............................");
 
-    PhxKVServiceImpl oPhxKVServer(oMyNode, vecNodeInfoList, sKVDBPath, sPaxosLogPath);
+    int iGroupCount = atoi(argv[6]);
+
+    PhxKVServiceImpl oPhxKVServer(oMyNode, vecNodeInfoList, sKVDBPath, sPaxosLogPath, iGroupCount);
     ret = oPhxKVServer.Init();
     if (ret != 0)
     {

@@ -107,19 +107,18 @@ bool PhxKVSM :: Execute(const int iGroupIdx, const uint64_t llInstanceID,
 
     int iExecuteRet = -1;
     string sReadValue;
-    uint64_t llReadVersion;
 
     if (oKVOper.operator_() == KVOperatorType_READ)
     {
-        iExecuteRet = m_oKVClient.Get(oKVOper.key(), sReadValue, llReadVersion);
+        iExecuteRet = m_oKVClient.Get(oKVOper.key(), sReadValue);
     }
     else if (oKVOper.operator_() == KVOperatorType_WRITE)
     {
-        iExecuteRet = m_oKVClient.Set(oKVOper.key(), oKVOper.value(), oKVOper.version());
+        iExecuteRet = m_oKVClient.Set(oKVOper.key(), oKVOper.value());
     }
     else if (oKVOper.operator_() == KVOperatorType_DELETE)
     {
-        iExecuteRet = m_oKVClient.Del(oKVOper.key(), oKVOper.version());
+        iExecuteRet = m_oKVClient.Del(oKVOper.key());
     }
     else
     {
@@ -140,7 +139,6 @@ bool PhxKVSM :: Execute(const int iGroupIdx, const uint64_t llInstanceID,
             PhxKVSMCtx * poPhxKVSMCtx = (PhxKVSMCtx *)poSMCtx->m_pCtx;
             poPhxKVSMCtx->iExecuteRet = iExecuteRet;
             poPhxKVSMCtx->sReadValue = sReadValue;
-            poPhxKVSMCtx->llReadVersion = llReadVersion;
         }
 
         SyncCheckpointInstanceID(llInstanceID);
@@ -154,14 +152,12 @@ bool PhxKVSM :: Execute(const int iGroupIdx, const uint64_t llInstanceID,
 bool PhxKVSM :: MakeOpValue(
         const std::string & sKey, 
         const std::string & sValue, 
-        const uint64_t llVersion, 
         const KVOperatorType iOp,
         std::string & sPaxosValue)
 {
     KVOperator oKVOper;
     oKVOper.set_key(sKey);
     oKVOper.set_value(sValue);
-    oKVOper.set_version(llVersion);
     oKVOper.set_operator_(iOp);
     oKVOper.set_sid(rand());
 
@@ -172,24 +168,22 @@ bool PhxKVSM :: MakeGetOpValue(
         const std::string & sKey,
         std::string & sPaxosValue)
 {
-    return MakeOpValue(sKey, "", 0, KVOperatorType_READ, sPaxosValue);
+    return MakeOpValue(sKey, "", KVOperatorType_READ, sPaxosValue);
 }
 
 bool PhxKVSM :: MakeSetOpValue(
         const std::string & sKey, 
         const std::string & sValue, 
-        const uint64_t llVersion, 
         std::string & sPaxosValue)
 {
-    return MakeOpValue(sKey, sValue, llVersion, KVOperatorType_WRITE, sPaxosValue);
+    return MakeOpValue(sKey, sValue, KVOperatorType_WRITE, sPaxosValue);
 }
 
 bool PhxKVSM :: MakeDelOpValue(
         const std::string & sKey, 
-        const uint64_t llVersion, 
         std::string & sPaxosValue)
 {
-    return MakeOpValue(sKey, "", llVersion, KVOperatorType_DELETE, sPaxosValue);
+    return MakeOpValue(sKey, "", KVOperatorType_DELETE, sPaxosValue);
 }
 
 KVClient * PhxKVSM :: GetKVClient()

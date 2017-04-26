@@ -24,39 +24,35 @@ See the AUTHORS file for names of contributors.
 using namespace std;
 using namespace phxkv;
 
-void Put(PhxKVClient & oPhxKVClient, const string & sKey, const string & sValue, const uint64_t llVersion)
+void Put(PhxKVClient & oPhxKVClient, const string & sKey, const string & sValue)
 {
-    int ret = oPhxKVClient.Put(sKey, sValue, llVersion);
+    int ret = oPhxKVClient.Put(sKey, sValue);
     if (ret == 0)
     {
-        printf("Put ok, key %s value %s version %lu\n", 
-                sKey.c_str(), sValue.c_str(), llVersion);
-    }
-    else if (ret == -11)
-    {
-        printf("Put version conflict, key %s value %s version %lu\n",
-                sKey.c_str(), sValue.c_str(), llVersion);
+        printf("Put ok, key %s value %s\n", 
+                sKey.c_str(), sValue.c_str());
+        return ;
     }
     else
     {
-        printf("Put fail, ret %d, key %s value %s version %lu\n", 
-                ret, sKey.c_str(), sValue.c_str(), llVersion);
+        printf("Put fail, ret %d, key %s value %s\n", 
+                ret, sKey.c_str(), sValue.c_str());
     }
 }
 
 void GetGlobal(PhxKVClient & oPhxKVClient, const string & sKey)
 {
     string sReadValue;
-    uint64_t iReadVersion = 0;
-    int ret = oPhxKVClient.GetGlobal(sKey, sReadValue, iReadVersion);
+    int ret = oPhxKVClient.GetGlobal(sKey, sReadValue);
     if (ret == 0)
     {
-        printf("GetGlobal ok, key %s value %s version %lu\n", 
-                sKey.c_str(), sReadValue.c_str(), iReadVersion);
+        printf("GetGlobal key %s value %s\n", 
+                sKey.c_str(), sReadValue.c_str());
+        return ;
     }
     else if (ret == 1)
     {
-        printf("GetGlobal key %s not exist, version %lu\n", sKey.c_str(), iReadVersion);
+        printf("GetGlobal key %s not exist\n", sKey.c_str());
     }
     else if (ret == 101)
     {
@@ -71,16 +67,16 @@ void GetGlobal(PhxKVClient & oPhxKVClient, const string & sKey)
 void GetLocal(PhxKVClient & oPhxKVClient, const string & sKey)
 {
     string sReadValue;
-    uint64_t iReadVersion = 0;
-    int ret = oPhxKVClient.GetLocal(sKey, sReadValue, iReadVersion);
+    int ret = oPhxKVClient.GetLocal(sKey, sReadValue);
     if (ret == 0)
     {
-        printf("GetLocal ok, key %s value %s version %lu\n", 
-                sKey.c_str(), sReadValue.c_str(), iReadVersion);
+        printf("GetLocal key %s value %s\n", 
+                sKey.c_str(), sReadValue.c_str());
+        return ;
     }
     else if (ret == 1)
     {
-        printf("GetLocal key %s not exist, version %lu\n", sKey.c_str(), iReadVersion);
+        printf("GetLocal key %s not exist\n", sKey.c_str());
     }
     else
     {
@@ -88,18 +84,14 @@ void GetLocal(PhxKVClient & oPhxKVClient, const string & sKey)
     }
 }
 
-void Delete(PhxKVClient & oPhxKVClient, const string & sKey, const uint64_t llVersion)
+void Delete(PhxKVClient & oPhxKVClient, const string & sKey)
 {
-    int ret = oPhxKVClient.Delete(sKey, llVersion);
+    int ret = oPhxKVClient.Delete(sKey);
     if (ret == 0)
     {
-        printf("Delete ok, key %s version %lu\n", 
-                sKey.c_str(), llVersion);
-    }
-    else if (ret == -11)
-    {
-        printf("Delete version conflict, key %s version %lu\n", 
-                sKey.c_str(), llVersion);
+        printf("Delete key %s\n", 
+                sKey.c_str());
+        return ;
     }
     else
     {
@@ -109,10 +101,10 @@ void Delete(PhxKVClient & oPhxKVClient, const string & sKey, const uint64_t llVe
 
 void usage(char ** argv)
 {
-    printf("%s <server address ip:port> <put> <key> <value> <version>\n", argv[0]);
+    printf("%s <server address ip:port> <put> <key> <value>\n", argv[0]);
     printf("%s <server address ip:port> <getlocal> <key>\n", argv[0]);
     printf("%s <server address ip:port> <getglobal> <key>\n", argv[0]);
-    printf("%s <server address ip:port> <delete> <key> <version>\n", argv[0]);
+    printf("%s <server address ip:port> <delete> <key>\n", argv[0]);
 }
 
 int main(int argc, char ** argv)
@@ -133,15 +125,14 @@ int main(int argc, char ** argv)
 
     if (sFunc == "put")
     {
-        if (argc < 6)
+        if (argc < 5)
         {
             usage(argv);
             return -2;
         }
 
         string sValue = argv[4];
-        uint64_t llVersion = strtoull(argv[5], NULL, 10);
-        Put(oPhxKVClient, sKey, sValue, llVersion);
+        Put(oPhxKVClient, sKey, sValue);
     }
     else if (sFunc == "getlocal")
     {
@@ -153,14 +144,13 @@ int main(int argc, char ** argv)
     }
     else if (sFunc == "delete")
     {
-        if (argc < 5)
+        if (argc < 4)
         {
             usage(argv);
             return -2;
         }
 
-        uint64_t llVersion = strtoull(argv[4], NULL, 10);
-        Delete(oPhxKVClient, sKey, llVersion);
+        Delete(oPhxKVClient, sKey);
     }
     else
     {
